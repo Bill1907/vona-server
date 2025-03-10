@@ -11,6 +11,12 @@ async function bootstrap() {
   // Enable CORS
   app.enableCors();
 
-  await app.listen(process.env.PORT ?? 3000);
+  // PORT 환경 변수를 사용하거나 기본값으로 3000 사용
+  const port = process.env.PORT || 3000;
+
+  // 모든 네트워크 인터페이스(0.0.0.0)에서 수신 대기
+  await app.listen(port, '0.0.0.0');
+
+  console.log(`Application is running on: ${await app.getUrl()}`);
 }
 bootstrap();
