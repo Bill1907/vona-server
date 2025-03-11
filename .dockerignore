@@ -1,0 +1,33 @@
+# Git
+.git
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# Node.js
+node_modules
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+
+# NestJS
+dist
+build
+coverage
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 환경 설정 파일 (필요에 따라 조정)
+.env
+.env.*
+
+# 기타
+README.md
+LICENSE
+*.md
+.vscode
+.idea 
