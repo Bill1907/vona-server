@@ -29,4 +29,4 @@ serviceAccount: '307101842878-compute@developer.gserviceaccount.com'
 options:
   logging: CLOUD_LOGGING_ONLY
 
-timeout: '1200s' # 20분 타임아웃
+timeout: '1600s' # 26분 타임아웃
