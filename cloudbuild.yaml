@@ -23,8 +23,10 @@ steps:
 images:
   - 'gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA'
 
+# 서비스 계정을 최상위 필드로 이동
+serviceAccount: '307101842878-compute@developer.gserviceaccount.com'
+
 options:
-  serviceAccount: '307101842878-compute@developer.gserviceaccount.com'
   logging: CLOUD_LOGGING_ONLY
 
 timeout: '1200s' # 20분 타임아웃
