@@ -1,30 +1,19 @@
 steps:
-  # .env 파일을 .env.yaml로 변환 (개선된 스크립트)
+  # .env 파일에서 환경 변수 추출 및 직접 설정
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        # 주석 없이 시작하여 YAML 파일 생성
         if [ -f .env ]; then
-          echo "{" > .env.yaml
-          grep -v '^#' .env | grep -v '^$' | while IFS= read -r line; do
-            # = 기호로 첫 번째 구분만 적용
-            key=$(echo "$line" | cut -d '=' -f1)
-            value=$(echo "$line" | cut -d '=' -f2-)
-            # 마지막 줄인지 확인하기 위해 임시 저장
-            echo "  \"$key\": \"$value\"," >> .env.yaml.tmp
-          done
-          # 마지막 줄의 쉼표 제거
-          sed '$ s/,$//' .env.yaml.tmp >> .env.yaml
-          echo "}" >> .env.yaml
-          rm .env.yaml.tmp
-          
-          echo "Generated .env.yaml file:"
-          cat .env.yaml
+          # 환경 변수 추출
+          ENV_VARS=$(grep -v '^#' .env | grep -v '^$' | sed 's/^/--set-env-vars=/' | tr '\n' ' ')
+          echo "Extracted environment variables will be applied"
+          # 변수 저장 (다음 단계에서 사용하기 위함)
+          echo "ENV_VARS=\"$ENV_VARS\"" > _env_vars.sh
         else
-          echo "Error: .env file not found!"
-          exit 1
+          echo "Warning: .env file not found! Will proceed without environment variables."
+          echo "ENV_VARS=\"\"" > _env_vars.sh
         fi
 
   # Docker 이미지 빌드
@@ -35,18 +24,19 @@ steps:
   - name: 'gcr.io/cloud-builders/docker'
     args: ['push', 'gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA']
 
-  # Cloud Run에 서비스 배포
+  # Cloud Run에 서비스 배포 (동적으로 환경 변수 적용)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'gcloud'
+    entrypoint: 'bash'
     args:
-      - 'run'
-      - 'deploy'
-      - 'vona-server'
-      - '--image=gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA'
-      - '--region=asia-northeast3' # 실제 사용 지역으로 변경
-      - '--platform=managed'
-      - '--allow-unauthenticated'
-      - '--env-vars-file=.env.yaml'
+      - '-c'
+      - |
+        source _env_vars.sh
+        gcloud run deploy vona-server \
+          --image=gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA \
+          --region=asia-northeast3 \
+          --platform=managed \
+          --allow-unauthenticated \
+          $ENV_VARS
 
 # 이미지 태그
 images:
