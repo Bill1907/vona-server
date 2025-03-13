@@ -32,7 +32,7 @@ steps:
       - '--region=asia-northeast3' # 실제 사용 지역으로 변경
       - '--platform=managed'
       - '--allow-unauthenticated'
-      - '--set-env-vars-file=.env.yaml'
+      - '--env-vars-file=.env.yaml'
 
 # 이미지 태그
 images:
