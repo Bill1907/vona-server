@@ -1,21 +1,4 @@
 steps:
-  # .env 파일에서 환경 변수 추출 및 직접 설정
-  - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
-    args:
-      - '-c'
-      - |
-        if [ -f .env ]; then
-          # 환경 변수 추출
-          ENV_VARS=$(grep -v '^#' .env | grep -v '^$' | sed 's/^/--set-env-vars=/' | tr '\n' ' ')
-          echo "Extracted environment variables will be applied"
-          # 변수 저장 (다음 단계에서 사용하기 위함)
-          echo "ENV_VARS=\"$ENV_VARS\"" > _env_vars.sh
-        else
-          echo "Warning: .env file not found! Will proceed without environment variables."
-          echo "ENV_VARS=\"\"" > _env_vars.sh
-        fi
-
   # Docker 이미지 빌드
   - name: 'gcr.io/cloud-builders/docker'
     args: ['build', '-t', 'gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA', '.']
@@ -26,17 +9,15 @@ steps:
 
   # Cloud Run에 서비스 배포 (동적으로 환경 변수 적용)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
-    entrypoint: 'bash'
+    entrypoint: 'gcloud'
     args:
-      - '-c'
-      - |
-        source _env_vars.sh
-        gcloud run deploy vona-server \
-          --image=gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA \
-          --region=asia-northeast3 \
-          --platform=managed \
-          --allow-unauthenticated \
-          $ENV_VARS
+      - 'run'
+      - 'deploy'
+      - 'vona-server'
+      - '--image=gcr.io/$PROJECT_ID/vona-server:$COMMIT_SHA'
+      - '--region=asia-northeast3'
+      - '--platform=managed'
+      - '--allow-unauthenticated'
 
 # 이미지 태그
 images:
