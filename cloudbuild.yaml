@@ -1,17 +1,31 @@
 steps:
-  # .env 파일을 .env.yaml로 변환
+  # .env 파일을 .env.yaml로 변환 (개선된 스크립트)
   - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
     entrypoint: 'bash'
     args:
       - '-c'
       - |
-        echo "# Generated from .env file" > .env.yaml
-        grep -v '^#' .env | grep -v '^$' | while IFS= read -r line; do
-          key=$(echo $line | cut -d '=' -f1)
-          value=$(echo $line | cut -d '=' -f2-)
-          echo "$key: '$value'" >> .env.yaml
-        done
-        cat .env.yaml
+        # 주석 없이 시작하여 YAML 파일 생성
+        if [ -f .env ]; then
+          echo "{" > .env.yaml
+          grep -v '^#' .env | grep -v '^$' | while IFS= read -r line; do
+            # = 기호로 첫 번째 구분만 적용
+            key=$(echo "$line" | cut -d '=' -f1)
+            value=$(echo "$line" | cut -d '=' -f2-)
+            # 마지막 줄인지 확인하기 위해 임시 저장
+            echo "  \"$key\": \"$value\"," >> .env.yaml.tmp
+          done
+          # 마지막 줄의 쉼표 제거
+          sed '$ s/,$//' .env.yaml.tmp >> .env.yaml
+          echo "}" >> .env.yaml
+          rm .env.yaml.tmp
+          
+          echo "Generated .env.yaml file:"
+          cat .env.yaml
+        else
+          echo "Error: .env file not found!"
+          exit 1
+        fi
 
   # Docker 이미지 빌드
   - name: 'gcr.io/cloud-builders/docker'
