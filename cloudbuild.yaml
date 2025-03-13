@@ -25,7 +25,6 @@ steps:
       - '--max-instances=10' # 최대 인스턴스 수
       - '--port=8080' # 포트 명시적 지정
       - '--set-env-vars=NODE_ENV=production' # 환경 변수 설정
-      - '--startup-cpu-boost' # 시작 시 CPU 부스트 활성화
 
 # 이미지 태그
 images:
