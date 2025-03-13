@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { WebRTCModule } from './webrtc/webrtc.module';
 import { JournalsModule } from './journals/journals.module';
+import { InstructionsModule } from './instructions/instructions.module';
 
 @Module({
   imports: [
@@ -12,6 +13,7 @@ import { JournalsModule } from './journals/journals.module';
     }),
     WebRTCModule,
     JournalsModule,
+    InstructionsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

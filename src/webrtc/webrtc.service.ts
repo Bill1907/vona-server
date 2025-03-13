@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JournalService } from './journal.service';
 import { SupabaseService } from './supabase.service';
+import { InstructionsService } from '../instructions/instructions.service';
 
 @Injectable()
 export class WebRTCService {
@@ -9,29 +10,17 @@ export class WebRTCService {
     private configService: ConfigService,
     private journalService: JournalService,
     private supabaseService: SupabaseService,
+    private instructionsService: InstructionsService,
   ) {}
-
-  private async createInstructions(userId: string): Promise<string> {
-    const journals = await this.journalService.getJournalsByUserId(userId);
-
-    if (journals.length === 0) {
-      return `You're a conversational AI that writes a user's diary for them. Listen carefully and create a natural, emotional journal entry without repeating what the user said. Be friendly and empathetic. Ask brief questions like "How did you feel?" or "What went through your mind?" if needed for more details. When finished, simply ask "Is there anything you'd like to change?" to gather feedback.`;
-    } else {
-      return `
-      You are a helpful assistant that can answer questions and help with tasks.
-      Here is the user's journal history:
-      ${journals.map((journal) => `- ${journal.title}: ${journal.content}`).join('\n')}
-      `;
-    }
-  }
 
   async createWebRTCSession(userId: string, model: string, voice: string) {
     try {
       // Verify user exists
       await this.supabaseService.getUserById(userId);
 
-      // Create instructions using user's journal history
-      const instructions = await this.createInstructions(userId);
+      // Get instructions from the Instructions service
+      const instructions =
+        await this.instructionsService.getInstructions(userId);
 
       // Create WebRTC session
       const response = await fetch(
