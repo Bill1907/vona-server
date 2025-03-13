@@ -31,5 +31,9 @@ ENV PORT=8080
 # 포트 노출
 EXPOSE 8080
 
-# 애플리케이션 실행
-CMD ["node", "dist/main"] 
+# 헬스 체크 추가
+HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
+  CMD wget --quiet --tries=1 --spider http://localhost:8080/health || exit 1
+
+# 애플리케이션 실행 (시작 스크립트 개선)
+CMD ["node", "dist/main.js"] 

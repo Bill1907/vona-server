@@ -18,6 +18,14 @@ steps:
       - '--region=asia-northeast3' # 실제 사용 지역으로 변경
       - '--platform=managed'
       - '--allow-unauthenticated' # 필요시 포함 또는 제거
+      - '--timeout=300s' # 요청 타임아웃 5분으로 설정
+      - '--cpu=1' # CPU 할당
+      - '--memory=512Mi' # 메모리 할당
+      - '--min-instances=0' # 최소 인스턴스 수
+      - '--max-instances=10' # 최대 인스턴스 수
+      - '--port=8080' # 포트 명시적 지정
+      - '--set-env-vars=NODE_ENV=production' # 환경 변수 설정
+      - '--startup-cpu-boost' # 시작 시 CPU 부스트 활성화
 
 # 이미지 태그
 images:
@@ -28,5 +36,7 @@ serviceAccount: '307101842878-compute@developer.gserviceaccount.com'
 
 options:
   logging: CLOUD_LOGGING_ONLY
+  # 동시성 제한
+  machineType: 'E2_HIGHCPU_8'
 
 timeout: '1200s' # 20분 타임아웃
