@@ -1,28 +1,24 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { JournalService } from './journal.service';
 import { SupabaseService } from './supabase.service';
-import { InstructionsService } from '../instructions/instructions.service';
 
 @Injectable()
 export class WebRTCService {
   constructor(
     private configService: ConfigService,
-    private journalService: JournalService,
     private supabaseService: SupabaseService,
-    private instructionsService: InstructionsService,
   ) {}
 
-  async createWebRTCSession(userId: string, model: string, voice: string) {
+  async createWebRTCSession(
+    userId: string,
+    model: string,
+    voice: string,
+    instructions: string,
+  ) {
     try {
       // Verify user exists
       await this.supabaseService.getUserById(userId);
-
-      // Get instructions from the Instructions service
-      const instructions =
-        await this.instructionsService.getInstructions(userId);
-
-      // Create WebRTC session
+      // Create an ephemeral API token for use in client-side applications with the Realtime API
       const response = await fetch(
         'https://api.openai.com/v1/realtime/sessions',
         {

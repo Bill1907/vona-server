@@ -7,10 +7,10 @@ import {
   UsePipes,
   ValidationPipe,
   Get,
+  Put,
 } from '@nestjs/common';
 import { InstructionsService } from './instructions.service';
-import { CreateInstructionsDto } from './dto/create-instructions.dto';
-import { InstructionsDto } from './dto/instructions.dto';
+import { InstructionsDto, UpdateInstructionsDto } from './dto/instructions.dto';
 
 @Controller('instructions')
 export class InstructionsController {
@@ -18,13 +18,19 @@ export class InstructionsController {
 
   @Post()
   @UsePipes(new ValidationPipe())
-  async createInstructions(
-    @Body() createInstructionsDto: CreateInstructionsDto,
-  ) {
+  async createInstructions(@Body() instructionsDto: InstructionsDto) {
     try {
-      const { userId, instructions } = createInstructionsDto;
+      const { userId, instructions } = instructionsDto;
 
-      await this.instructionsService.createInstructions(userId, instructions);
+      // Use provided instructions or default
+      const instructionsText =
+        instructions ||
+        "You're a conversational AI that writes a user's diary for them. Listen carefully and create a natural, emotional journal entry without repeating what the user said.";
+
+      await this.instructionsService.createInstructions(
+        userId,
+        instructionsText,
+      );
 
       return { message: 'Instructions created successfully' };
     } catch (error) {
@@ -56,6 +62,34 @@ export class InstructionsController {
 
       throw new HttpException(
         error.message || 'Failed to get instructions',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  @Put()
+  @UsePipes(new ValidationPipe())
+  async updateInstructions(@Body() updateDto: UpdateInstructionsDto) {
+    try {
+      const { userId, instruction, journals } = updateDto;
+
+      const updatedInstruction =
+        await this.instructionsService.updateInstructions(userId, {
+          instruction,
+          journals,
+        });
+
+      return {
+        message: 'Instructions updated successfully',
+        instructions: updatedInstruction,
+      };
+    } catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      throw new HttpException(
+        error.message || 'Failed to update instructions',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

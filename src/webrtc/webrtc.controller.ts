@@ -18,7 +18,7 @@ export class WebRTCController {
   @UsePipes(new ValidationPipe())
   async createWebRTCSession(@Body() webRTCSessionDto: WebRTCSessionDto) {
     try {
-      const { userId, model, voice } = webRTCSessionDto;
+      const { userId, model, voice, instructions } = webRTCSessionDto;
 
       if (!model || !voice) {
         throw new HttpException(
@@ -31,6 +31,7 @@ export class WebRTCController {
         userId,
         model,
         voice,
+        instructions,
       );
 
       return result;

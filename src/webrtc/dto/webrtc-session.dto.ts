@@ -12,4 +12,8 @@ export class WebRTCSessionDto {
   @IsNotEmpty()
   @IsString()
   voice: string;
+
+  @IsNotEmpty()
+  @IsString()
+  instructions: string;
 }

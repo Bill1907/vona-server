@@ -101,8 +101,6 @@ export class JournalsService {
         ),
       });
 
-      console.log('response', response);
-
       return response.choices[0].message.parsed as JournalResponseDto;
     } catch (error) {
       console.error('Error creating journal:', error);

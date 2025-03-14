@@ -1,13 +1,23 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseService } from '../webrtc/supabase.service';
 import { JournalService } from '../webrtc/journal.service';
+import { JournalDto } from '../journals/dto/journal.dto';
+import { ConfigService } from '@nestjs/config';
+import OpenAI from 'openai';
 
 @Injectable()
 export class InstructionsService {
+  private openai: OpenAI;
+
   constructor(
     private supabaseService: SupabaseService,
     private journalService: JournalService,
-  ) {}
+    private configService: ConfigService,
+  ) {
+    this.openai = new OpenAI({
+      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+    });
+  }
 
   async createInstructions(
     userId: string,
@@ -60,6 +70,79 @@ export class InstructionsService {
           `Failed to create instructions: ${insertError.message}`,
         );
       }
+    }
+  }
+
+  async updateInstructions(
+    userId: string,
+    data: { instruction: string; journals?: JournalDto[] },
+  ): Promise<string> {
+    // Update the instructions with the provided text
+    await this.createInstructions(userId, data.instruction);
+
+    // If journals are provided, use OpenAI to generate a new instruction based on them
+    if (data.journals && data.journals.length > 0) {
+      try {
+        // Format journals for context
+        const journalContext = data.journals
+          .map((journal) => `- ${journal.title}: ${journal.content}`)
+          .join('\n');
+
+        // Call OpenAI to generate a new instruction
+        const updatedInstruction = await this.generateInstructionsWithOpenAI(
+          data.instruction,
+          journalContext,
+        );
+
+        // Update the instructions with the newly generated one
+        await this.createInstructions(userId, updatedInstruction);
+
+        // Return the updated instruction
+        return updatedInstruction;
+      } catch (error) {
+        console.error('Failed to generate instruction with OpenAI:', error);
+        // Continue with the provided instruction if OpenAI fails
+      }
+    }
+
+    // Return the updated instructions
+    return data.instruction;
+  }
+
+  private async generateInstructionsWithOpenAI(
+    currentInstructions: string,
+    journalContext: string,
+  ): Promise<string> {
+    try {
+      const response = await this.openai.chat.completions.create({
+        model: 'gpt-4o',
+        messages: [
+          {
+            role: 'developer',
+            content:
+              'You are an AI assistant that analyzes journal entries and improves instruction prompts. ' +
+              "Your task is to update the current instructions to better reflect the user's writing style, " +
+              'interests, and emotional patterns based on their journal entries. ' +
+              'Keep the new instructions concise but comprehensive.',
+          },
+          {
+            role: 'user',
+            content:
+              `Current instructions: "${currentInstructions}"\n\n` +
+              `Journal entries:\n${journalContext}\n\n` +
+              "Please update the instructions to better reflect the user's writing style, " +
+              'interests, and emotional patterns based on these journal entries. ' +
+              'Return ONLY the updated instructions text, nothing else.',
+          },
+        ],
+        temperature: 0.7,
+        max_tokens: 1000,
+      });
+
+      return response.choices[0].message.content.trim();
+    } catch (error) {
+      console.error('Error calling OpenAI:', error);
+      throw new Error('Failed to generate instructions with OpenAI');
     }
   }
 
