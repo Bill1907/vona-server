@@ -34,6 +34,7 @@ export class WebRTCService {
             input_audio_transcription: {
               model: 'whisper-1',
             },
+            temperature: 0.4,
           }),
         },
       );
