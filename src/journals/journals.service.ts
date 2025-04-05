@@ -75,20 +75,32 @@ export class JournalsService {
   }
 
   // Method to convert conversation to journal entry
-  async createJournalFromConversation(conversation: any[]): Promise<{
+  async createJournalFromConversation(
+    conversation: any[],
+    lang: string,
+  ): Promise<{
     keywords: string[];
     emotion: string;
     title: string;
     content: string;
   }> {
     try {
+      const languageMap = {
+        en: 'English',
+        ko: 'Korean',
+        ja: 'Japanese',
+        es: 'Spanish',
+        de: 'German',
+        it: 'Italian',
+        pt: 'Portuguese',
+      };
+
       const response = await this.openai.beta.chat.completions.parse({
         model: 'gpt-4o',
         messages: [
           {
             role: 'system',
-            content:
-              'You are a helpful assistant that analyzes conversations and extracts key information to create a journal entry.',
+            content: `You are a helpful assistant that analyzes conversations and extracts key information to create a journal entry. Please provide your response in ${languageMap[lang]} language.`,
           },
           {
             role: 'user',

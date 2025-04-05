@@ -4,4 +4,8 @@ export class JournalCreationDto {
   @IsNotEmpty()
   @IsArray()
   conversation: any[];
+
+  @IsNotEmpty()
+  @IsString()
+  lang: string;
 }

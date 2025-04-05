@@ -21,7 +21,7 @@ export class JournalsController {
     @Body() journalCreationDto: JournalCreationDto,
   ): Promise<JournalResponseDto> {
     try {
-      const { conversation } = journalCreationDto;
+      const { conversation, lang } = journalCreationDto;
 
       if (!conversation) {
         throw new HttpException(
@@ -32,7 +32,10 @@ export class JournalsController {
 
       // Generate journal data from conversation
       const journalData =
-        await this.journalsService.createJournalFromConversation(conversation);
+        await this.journalsService.createJournalFromConversation(
+          conversation,
+          lang,
+        );
 
       return journalData as JournalResponseDto;
     } catch (error) {
